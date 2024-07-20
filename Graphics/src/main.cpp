@@ -49,7 +49,7 @@ int main(void) {
             1.0f, 0.0f,
             0.5f, 1.0f
         };
-
+        std::cout << "LOH" << std::endl;
         VertexBuffer vb(vertices, sizeof(vertices));
         VertexArray va;
 
