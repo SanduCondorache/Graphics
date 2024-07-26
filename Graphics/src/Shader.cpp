@@ -7,6 +7,7 @@
 
 #include <GL/glew.h>
 
+
 Shader::Shader(const std::string& filepath) : m_FilePath(filepath), m_RendererID(0) {
     ShaderProgramSource source = ParseShader(filepath);
     m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
@@ -101,6 +102,9 @@ void Shader::SetUniform1f(const std::string& name, float value) {
     glUniform1f(GetUniformLocation(name), value);
 }
 
+void Shader::SetUniformMat4f(const std::string& name, const glm::mat4& matrix) {
+    glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
+}
 size_t Shader::GetUniformLocation(const std::string& name) {
     if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end()) {
         return m_UniformLocationCache[name];

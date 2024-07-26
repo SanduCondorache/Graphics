@@ -14,6 +14,9 @@
 #include "VertexBufferLayout.h"
 #include "Texture.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 int main(void) {
     GLFWwindow* window;
@@ -68,13 +71,22 @@ int main(void) {
         shader.SetUniform1i("u_Texture1", 0);
         shader.SetUniform1i("u_Texture2", 1);
         
-        float mixValue = 0.01f;
+
+        float mixValue = 0.01f, rot = 0.0f;
         while (!glfwWindowShouldClose(window)) {
 
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, true);
 
-            
+            glm::mat4 trans = glm::mat4(1.0f);
+            if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+                rot += 1.0f;
+            }
+            else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+                rot -= 1.0f;
+            }
+            trans = glm::rotate(trans, glm::radians(rot), glm::vec3(0.0f, 0.0f, 1.0f));
+            shader.SetUniformMat4f("transform", trans);
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 

@@ -7,8 +7,10 @@ layout (location = 2) in vec2 aTextCoord;
 out vec3 ourColor;
 out vec2 TexCoord;
 
+uniform mat4 transform;
+
 void main() {
-    gl_Position = vec4(aPos, 1.0);
+    gl_Position = transform * vec4(aPos, 1.0f);
     ourColor = aColor;
     TexCoord = aTextCoord;
 };
@@ -26,6 +28,6 @@ uniform sampler2D u_Texture1;
 uniform sampler2D u_Texture2;
 
 void main() {
-    vec4 texColor = mix(texture(u_Texture2, TexCoord), texture(u_Texture1, TexCoord), t_Value);
+    vec4 texColor = mix(texture(u_Texture2, TexCoord), texture(u_Texture1, TexCoord), 0.4f);
     FragColor = texColor;
 }
