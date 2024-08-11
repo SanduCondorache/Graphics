@@ -13,32 +13,68 @@
 #include "Shader.h"
 #include "VertexBufferLayout.h"
 #include "Texture.h"
+#include "Camera.h"
+#include "Keyboard.h"
+#include "Mouse.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+#define GLM_ENABLE_EXPERIMENTAL
 
+#include <glm/gtx/string_cast.hpp>
+
+using namespace std;
+
+int Width = 800, Height = 600;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-void processInput(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+Camera camera((float)Width, (float)Height, 10.0f);
 
-    float cameraSpeed = static_cast<float>(2.5 * deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+    Width = width;
+    Height = height;
+    camera.setScreenSize((float)Width, (float)Height);
 }
+
+void processInput(GLFWwindow* window) {
+    if (Keyboard::key(GLFW_KEY_ESCAPE)) {
+        glfwSetWindowShouldClose(window, true);
+    }
+
+    float cameraSpeed = camera.getCameraSpeed() * deltaTime;
+    float cameraSensitivity = 10.0f * deltaTime;
+
+    float x = 0.0f, z = 0.0f;
+    float yaw = ((float)Mouse::getMouseDX()) * cameraSensitivity;
+    float pitch = ((float)Mouse::getMouseDY()) * cameraSensitivity;
+
+    if (Keyboard::key(GLFW_KEY_W)) {
+        z = cameraSpeed;
+    }
+    if (Keyboard::key(GLFW_KEY_S)) {
+        z = -cameraSpeed;
+    }
+    if (Keyboard::key(GLFW_KEY_D)) {
+        x = cameraSpeed;
+    }
+    if (Keyboard::key(GLFW_KEY_A)) {
+        x = -cameraSpeed;
+    }
+    if (Keyboard::key(GLFW_KEY_SPACE)) {
+        camera.moveUp(cameraSpeed);
+    }
+    if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) {
+        camera.moveUp(-cameraSpeed);
+    }
+
+    camera.cameraRotate(yaw, pitch);
+    camera.cameraMove(z, 0, x);
+}
+
 
 int main(void) {
     GLFWwindow* window;
@@ -50,7 +86,7 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(800, 600, "Loh", NULL, NULL);
+    window = glfwCreateWindow(Width, Height, "Loh", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -58,69 +94,14 @@ int main(void) {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glewInit();
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, Keyboard::keyCallback);
+    glfwSetCursorPosCallback(window, Mouse::cursorPosCallback);
+    glfwSetMouseButtonCallback(window, Mouse::mouseButtonCallback);
+    glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
     {
         glEnable(GL_DEPTH_TEST);
-        float vertices[] = {
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-             0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-             0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-        };
-
-        glm::vec3 cubePositions[] = {
-            glm::vec3(0.0f,  0.0f,  0.0f),
-            glm::vec3(2.0f,  5.0f, -15.0f),
-            glm::vec3(-1.5f, -2.2f, -2.5f),
-            glm::vec3(-3.8f, -2.0f, -12.3f),
-            glm::vec3(2.4f, -0.4f, -3.5f),
-            glm::vec3(-1.7f,  3.0f, -7.5f),
-            glm::vec3(1.3f, -2.0f, -2.5f),
-            glm::vec3(1.5f,  2.0f, -2.5f),
-            glm::vec3(1.5f,  0.2f, -1.5f),
-            glm::vec3(-1.3f,  1.0f, -1.5f)
-        };
-
-        size_t indeces[] = {
-            0, 1, 2,
-            2, 3, 0
-        };
         
         VertexBuffer vb(vertices, sizeof(vertices));
         VertexArray va;
@@ -140,10 +121,12 @@ int main(void) {
         texture2.Bind(1);
         shader.SetUniform1i("u_Texture1", 0);
         shader.SetUniform1i("u_Texture2", 1);
+
         
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -152,8 +135,8 @@ int main(void) {
             lastFrame = currentFrame;
 
             processInput(window);
-
-            view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+            projection = camera.perspectiveMatrix(); //glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+            view = camera.viewMatrix(); //glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
             shader.SetUniformMat4f("view", view);
             shader.SetUniformMat4f("projection", projection);
 
