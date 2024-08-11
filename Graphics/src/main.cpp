@@ -21,9 +21,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define GLM_ENABLE_EXPERIMENTAL
-
-#include <glm/gtx/string_cast.hpp>
 
 using namespace std;
 
@@ -31,7 +28,7 @@ int Width = 800, Height = 600;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera camera((float)Width, (float)Height, 10.0f);
+Camera camera((float)Width, (float)Height);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -103,6 +100,8 @@ int main(void) {
     {
         glEnable(GL_DEPTH_TEST);
         
+        Renderer renderer;
+
         VertexBuffer vb(vertices, sizeof(vertices));
         VertexArray va;
         IndexBuffer ib(indeces, 6);
@@ -122,12 +121,6 @@ int main(void) {
         shader.SetUniform1i("u_Texture1", 0);
         shader.SetUniform1i("u_Texture2", 1);
 
-        
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-
-        
-
         while (!glfwWindowShouldClose(window)) {
 
             float currentFrame = static_cast<float>(glfwGetTime());
@@ -135,24 +128,10 @@ int main(void) {
             lastFrame = currentFrame;
 
             processInput(window);
-            projection = camera.perspectiveMatrix(); //glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
-            view = camera.viewMatrix(); //glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-            shader.SetUniformMat4f("view", view);
-            shader.SetUniformMat4f("projection", projection);
 
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderer.Clear();
+            renderer.Draw(va, shader, camera);
 
-            va.Bind();
-            ib.Bind();
-            for (int i = 0; i < 10; i++) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[i]);
-                float angle = 20.f * i;
-                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                shader.SetUniformMat4f("model", model);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
             glfwSwapBuffers(window);
             glfwPollEvents();
         }

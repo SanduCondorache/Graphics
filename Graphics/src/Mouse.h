@@ -4,14 +4,14 @@
 
 class Mouse {
 public:
+	Mouse();
 	// Callbacks
 	static void cursorPosCallback(GLFWwindow* window, double _x, double _y);
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 	static void mouseWheelCallback(GLFWwindow* window, double dx, double dy);
 
-	// Accesors
-	static double getMouseX();
-	static double getMouseY();
+	static inline double getMouseX() { return m_X; }
+	static inline double getMouseY() { return m_Y; }
 
 	static double getMouseDX();
 	static double getMouseDY();
@@ -27,20 +27,17 @@ public:
 	static void centerCursor(bool val);
 
 private:
-	static double x, y;
+	static double m_X, m_Y;
 
-	static double lastX, lastY;
+	static double m_LastX, m_LastY;
 
-	static double dx, dy;
+	static double m_dx, m_dy;
 
-	static double scrollDx, scrollDy;
+	static double m_ScrollDx, m_ScrollDy;
 
-	static bool firstMouse;
+	static bool m_FirstMouse;
 
-	static bool buttons[];
-	static bool buttonsChanged[];
+	static bool m_Buttons[GLFW_MOUSE_BUTTON_LAST];
+	static bool m_ButtonsChanged[GLFW_MOUSE_BUTTON_LAST];
 
-	static bool EnforceCursor;
-
-	static bool sw;
 };

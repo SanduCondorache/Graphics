@@ -1,117 +1,100 @@
 #include "Mouse.h"
 
-double Mouse::x = 0, Mouse::y = 0;
+double Mouse::m_X = 0; 
+double Mouse::m_Y = 0;
 
-double Mouse::lastX = 0, Mouse::lastY = 0;
+double Mouse::m_LastX = 0; 
+double Mouse::m_LastY = 0;
 
-double Mouse::dx = 0, Mouse::dy = 0;
+double Mouse::m_dx = 0; 
+double Mouse::m_dy = 0;
 
-double Mouse::scrollDx = 0, Mouse::scrollDy = 0;
+double Mouse::m_ScrollDx = 0; 
+double Mouse::m_ScrollDy = 0;
 
-bool Mouse::firstMouse = true;
+bool Mouse::m_FirstMouse = true;
 
-bool Mouse::buttons[GLFW_MOUSE_BUTTON_LAST] = { 0 };
-bool Mouse::buttonsChanged[GLFW_MOUSE_BUTTON_LAST] = { 0 };
+bool Mouse::m_Buttons[GLFW_MOUSE_BUTTON_LAST] = { 0 };
+bool Mouse::m_ButtonsChanged[GLFW_MOUSE_BUTTON_LAST] = { 0 };
 
-bool Mouse::EnforceCursor = false;
-bool Mouse::sw = false;
 
 void Mouse::cursorPosCallback(GLFWwindow* window, double _x, double _y) {
-	x = _x;
-	y = _y;
+	m_X = _x;
+	m_Y = _y;
 
-	if (firstMouse) {
-		lastX = x;
-		lastY = y;
-		firstMouse = false;
+	if (m_FirstMouse) {
+		m_LastX = m_X;
+		m_LastY = m_Y;
+		m_FirstMouse = false;
 	}
 
-	dx = x - lastX;
-	dy = lastY - y;
+	m_dx = m_X - m_LastX;
+	m_dy = m_LastY - m_Y;
 
-	lastX = x;
-	lastY = y;
-
-	if (EnforceCursor && sw) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		sw = false;
-	}
-
-	if (!EnforceCursor && sw) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		sw = false;
-	}
+	m_LastX = m_X;
+	m_LastY = m_Y;
 }
 
 void Mouse::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	// buttons[button] = action != GLFW_RELEASE;
-	// buttonsChanged[button] = action != GLFW_REPEAT;
-	// GLFW_REPEAT does not work for the mouse buttons
-
 	if (action == GLFW_RELEASE) {
-		if (buttons[button]) buttonsChanged[button] = true;
-		buttons[button] = false;
+		if (m_Buttons[button]) {
+			m_ButtonsChanged[button] = true;
+		}
+		m_Buttons[button] = false;
 	}
 
 	if (action == GLFW_PRESS) {
-		if (!buttons[button]) buttonsChanged[button] = true;
-		buttons[button] = true;
+		if (!m_Buttons[button]) {
+			m_ButtonsChanged[button] = true;
+		}
+		m_Buttons[button] = true;
 	}
 }
 
 void Mouse::mouseWheelCallback(GLFWwindow* window, double dx, double dy) {
-	scrollDx = dx;
-	scrollDy = dy;
+	m_ScrollDx = dx;
+	m_ScrollDy = dy;
 }
 
-double Mouse::getMouseX() { return x; }
-
-double Mouse::getMouseY() { return y; }
-
 double Mouse::getMouseDX() {
-	double _dx = dx;
-	dx = 0;
-	return _dx;
+	double dx = m_dx;
+	m_dx = 0;
+	return dx;
 }
 
 double Mouse::getMouseDY() {
-	double _dy = dy;
-	dy = 0;
-	return _dy;
+	double dy = m_dy;
+	m_dy = 0;
+	return dy;
 }
 
 double Mouse::getMouseScrollDX() {
-	double _sdx = scrollDx;
-	scrollDx = 0;
-	return _sdx;
+	double scrollDx = m_ScrollDx;
+	m_ScrollDx = 0;
+	return scrollDx;
 }
 
 double Mouse::getMouseScrollDY() {
-	double _sdy = scrollDy;
-	scrollDy = 0;
-	return _sdy;
+	double scrollDy = m_ScrollDy;
+	m_ScrollDy = 0;
+	return scrollDy;
 }
 
 bool Mouse::button(int button) {
-	return buttons[button];
+	return m_Buttons[button];
 }
 
 bool Mouse::buttonChanged(int button) {
-	bool ret = buttonsChanged[button];
-	buttonsChanged[button] = false;
+	bool ret = m_ButtonsChanged[button];
+	m_ButtonsChanged[button] = false;
 	return ret;
 }
 
 bool Mouse::buttonWentUp(int button) {
-	return !buttons[button] && buttonChanged(button);
+	return !m_Buttons[button] && buttonChanged(button);
 }
 
 bool Mouse::buttonWentDown(int button)
 {
-	return buttons[button] && buttonChanged(button);
-}
-
-void Mouse::centerCursor(bool val) {
-	EnforceCursor = val;
-	sw = true;
+	return m_Buttons[button] && buttonChanged(button);
 }
