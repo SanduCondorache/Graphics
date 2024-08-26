@@ -138,6 +138,7 @@ int main(void) {
             colorCube.SetUniform3f("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
             colorCube.SetUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             colorCube.SetUniform3f("lightPos", lightPos);
+            colorCube.SetUniform3f("viewPos", camera.getCameraPos());
 
             glm::mat4 projection = camera.PerspectiveMatrix();
             glm::mat4 view = camera.ViewMatrix();
