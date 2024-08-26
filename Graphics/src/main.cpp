@@ -28,6 +28,8 @@ int Width = 800, Height = 600;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 Camera camera((float)Width, (float)Height);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -107,9 +109,11 @@ int main(void) {
 
         VertexBufferLayout layoutCube;
         layoutCube.Push<float>(3);
+        layoutCube.Push<float>(3);
         vaCube.AddBuffer(vb, layoutCube);
 
         VertexBufferLayout layoutLight;
+        layoutLight.Push<float>(3);
         layoutLight.Push<float>(3);
         vaLight.AddBuffer(vb, layoutLight);
 
@@ -133,6 +137,7 @@ int main(void) {
             colorCube.Bind();
             colorCube.SetUniform3f("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
             colorCube.SetUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            colorCube.SetUniform3f("lightPos", lightPos);
 
             glm::mat4 projection = camera.PerspectiveMatrix();
             glm::mat4 view = camera.ViewMatrix();
