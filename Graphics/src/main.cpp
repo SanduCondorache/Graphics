@@ -34,7 +34,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
     Width = width;
     Height = height;
-    camera.setScreenSize((float)Width, (float)Height);
+    camera.SetScreenSize((float)Width, (float)Height);
 }
 
 void processInput(GLFWwindow* window) {
@@ -62,14 +62,14 @@ void processInput(GLFWwindow* window) {
         x = -cameraSpeed;
     }
     if (Keyboard::key(GLFW_KEY_SPACE)) {
-        camera.moveUp(cameraSpeed);
+        camera.MoveUp(cameraSpeed);
     }
     if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) {
-        camera.moveUp(-cameraSpeed);
+        camera.MoveUp(-cameraSpeed);
     }
 
-    camera.cameraRotate(yaw, pitch);
-    camera.cameraMove(z, 0, x);
+    camera.CameraRotate(yaw, pitch);
+    camera.CameraMove(z, 0, x);
 }
 
 
@@ -99,27 +99,25 @@ int main(void) {
     glfwSetScrollCallback(window, Mouse::mouseWheelCallback);
     {
         glEnable(GL_DEPTH_TEST);
-        
-        Renderer renderer;
 
         VertexBuffer vb(vertices, sizeof(vertices));
-        VertexArray va;
+        VertexArray vaCube;
+        VertexArray vaLight;
         IndexBuffer ib(indeces, 6);
 
-        VertexBufferLayout layout;
-        layout.Push<float>(3);
-        layout.Push<float>(2);
-        va.AddBuffer(vb, layout);
+        VertexBufferLayout layoutCube;
+        layoutCube.Push<float>(3);
+        vaCube.AddBuffer(vb, layoutCube);
 
-        Shader shader("res/Shader.shader");
-        shader.Bind();
+        VertexBufferLayout layoutLight;
+        layoutLight.Push<float>(3);
+        vaLight.AddBuffer(vb, layoutLight);
 
-        Texture texture1("Textures/wall.jpg");
-        Texture texture2("Textures/face.png");
-        texture1.Bind(0);
-        texture2.Bind(1);
-        shader.SetUniform1i("u_Texture1", 0);
-        shader.SetUniform1i("u_Texture2", 1);
+        Shader colorCube("res/ColorCube.shader");
+        colorCube.Bind();
+
+        Shader lightCube("res/LightCube.shader");
+        lightCube.Bind();
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -129,8 +127,36 @@ int main(void) {
 
             processInput(window);
 
-            renderer.Clear();
-            renderer.Draw(va, shader, camera);
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            colorCube.Bind();
+            colorCube.SetUniform3f("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+            colorCube.SetUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+
+            glm::mat4 projection = camera.PerspectiveMatrix();
+            glm::mat4 view = camera.ViewMatrix();
+
+            colorCube.SetUniformMat4f("projection", projection);
+            colorCube.SetUniformMat4f("view", view);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            colorCube.SetUniformMat4f("model", model);
+
+            vaCube.Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            lightCube.Bind();
+            lightCube.SetUniformMat4f("projection", projection);
+            lightCube.SetUniformMat4f("view", view);
+
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(1.2f, 1.0f, 2.0f));
+            model = glm::scale(model, glm::vec3(0.2f));
+            lightCube.SetUniformMat4f("model", model);
+
+            vaLight.Bind();
+            glDrawArrays(GL_TRIANGLES, 0, 36);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
