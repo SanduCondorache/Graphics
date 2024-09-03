@@ -135,9 +135,14 @@ int main(void) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             colorCube.Bind();
-            colorCube.SetUniform3f("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-            colorCube.SetUniform3f("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            colorCube.SetUniform3f("lightPos", lightPos);
+            colorCube.SetUniform3f("material.ambient", glm::vec3(0.05375f, 0.05f, 0.06625f));
+            colorCube.SetUniform3f("material.diffuse", glm::vec3(0.18275f, 0.17f, 0.22525f));
+            colorCube.SetUniform3f("material.specular", glm::vec3(0.332741f, 0.328634f, 0.346435f));
+            colorCube.SetUniform1f("material.shininess", 32.0f);
+            colorCube.SetUniform3f("light.position", lightPos);
+            colorCube.SetUniform3f("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+            colorCube.SetUniform3f("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+            colorCube.SetUniform3f("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
             colorCube.SetUniform3f("viewPos", camera.getCameraPos());
 
             glm::mat4 projection = camera.PerspectiveMatrix();
