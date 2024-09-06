@@ -110,11 +110,13 @@ int main(void) {
         VertexBufferLayout layoutCube;
         layoutCube.Push<float>(3);
         layoutCube.Push<float>(3);
+        layoutCube.Push<float>(2);
         vaCube.AddBuffer(vb, layoutCube);
 
         VertexBufferLayout layoutLight;
         layoutLight.Push<float>(3);
         layoutLight.Push<float>(3);
+        layoutLight.Push<float>(2);
         vaLight.AddBuffer(vb, layoutLight);
 
         Shader colorCube("res/ColorCube.shader");
@@ -122,6 +124,14 @@ int main(void) {
 
         Shader lightCube("res/LightCube.shader");
         lightCube.Bind();
+
+        Texture diffuseTexture("Textures/texture.png");
+        Texture specularTexture("Textures/specular.png");
+        diffuseTexture.Bind(0);
+        specularTexture.Bind(1);
+
+        colorCube.SetUniform1i("material.diffuse", 0);
+        colorCube.SetUniform1i("material.specular", 1);
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -135,10 +145,7 @@ int main(void) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             colorCube.Bind();
-            colorCube.SetUniform3f("material.ambient", glm::vec3(0.05375f, 0.05f, 0.06625f));
-            colorCube.SetUniform3f("material.diffuse", glm::vec3(0.18275f, 0.17f, 0.22525f));
-            colorCube.SetUniform3f("material.specular", glm::vec3(0.332741f, 0.328634f, 0.346435f));
-            colorCube.SetUniform1f("material.shininess", 32.0f);
+            colorCube.SetUniform1f("material.shininess", 64.0f);
             colorCube.SetUniform3f("light.position", lightPos);
             colorCube.SetUniform3f("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
             colorCube.SetUniform3f("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
